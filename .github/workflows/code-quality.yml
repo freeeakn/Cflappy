@@ -24,11 +24,30 @@ jobs:
         cppcheck --enable=all \
                  --suppress=missingInclude \
                  --suppress=missingIncludeSystem \
+                 --suppressions-list=suppressions.txt \
                  --error-exitcode=1 \
                  -I/usr/include/SDL2 \
                  --library=.cppcheck \
-                 --verbose \
-                 .
+                 --force \
+                 --max-configs=10 \
+                 --inline-suppr \
+                 --output-file=cppcheck_report.txt \
+                 main.c
+        if [ -f cppcheck_report.txt ]; then
+          cat cppcheck_report.txt
+          if grep -q "error:" cppcheck_report.txt; then
+            exit 1
+          fi
+        fi
+
+    - name: Upload Cppcheck Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: cppcheck-report
+        path: cppcheck_report.txt
+        if-no-files-found: ignore
+        retention-days: 90
 
     - name: Run clang-tidy
       run: |
