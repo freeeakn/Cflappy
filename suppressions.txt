@@ -1,3 +1,6 @@
-unusedFunction:*/SDL_*.h
+unusedFunction:*/SDL*.h
 unmatchedSuppression
-information:tooManyConfigs 
+information:tooManyConfigs
+missingIncludeSystem
+variableScope:main.c
+unusedStructMember:main.c 

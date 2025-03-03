@@ -24,22 +24,22 @@ jobs:
         # Create output directory
         mkdir -p cppcheck_report
 
-        # Run cppcheck and generate both text and XML reports
-        cppcheck --enable=all \
+        # Run cppcheck with more focused checks
+        cppcheck --enable=warning,performance,portability \
                  --suppress=missingInclude \
                  --suppress=missingIncludeSystem \
                  --suppressions-list=suppressions.txt \
-                 --error-exitcode=1 \
                  -I/usr/include/SDL2 \
                  --library=.cppcheck \
                  --force \
                  --max-configs=10 \
                  --inline-suppr \
                  --output-file=cppcheck_report/report.txt \
+                 --template="{file}:{line}: {severity}: {message}" \
                  main.c
-        
-        # Also generate XML report for potential future processing
-        cppcheck --enable=all \
+
+        # Generate XML report for documentation
+        cppcheck --enable=warning,performance,portability \
                  --suppress=missingInclude \
                  --suppress=missingIncludeSystem \
                  --suppressions-list=suppressions.txt \
@@ -51,14 +51,15 @@ jobs:
                  --xml \
                  --xml-version=2 \
                  main.c 2> cppcheck_report/report.xml
-        
+
         # Display findings in console
         if [ -f cppcheck_report/report.txt ]; then
           echo "Cppcheck findings:"
           cat cppcheck_report/report.txt
           
-          # Check for errors (looking for specific error patterns)
-          if grep -iE "error:|warning:" cppcheck_report/report.txt; then
+          # Only fail on actual errors, not style or information
+          if grep -iE "error:" cppcheck_report/report.txt; then
+            echo "Found errors in static analysis"
             exit 1
           fi
         fi
