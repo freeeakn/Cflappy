@@ -17,13 +17,18 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cppcheck clang-tidy
+        sudo apt-get install -y cppcheck clang-tidy libsdl2-dev
 
     - name: Run Cppcheck
-      run: cppcheck --enable=all --error-exitcode=1 .
-
-    - name: Install SDL2 for clang-tidy
-      run: sudo apt-get install -y libsdl2-dev
+      run: |
+        cppcheck --enable=all \
+                 --suppress=missingInclude \
+                 --suppress=missingIncludeSystem \
+                 --error-exitcode=1 \
+                 -I/usr/include/SDL2 \
+                 --library=.cppcheck \
+                 --verbose \
+                 .
 
     - name: Run clang-tidy
       run: |

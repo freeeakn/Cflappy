@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<def format="2">
+  <!-- SDL2 Configuration -->
+  <memory>
+    <alloc init="false">SDL_CreateWindow</alloc>
+    <alloc init="false">SDL_CreateRenderer</alloc>
+    <dealloc>SDL_DestroyWindow</dealloc>
+    <dealloc>SDL_DestroyRenderer</dealloc>
+  </memory>
+  
+  <!-- Function Configuration -->
+  <function name="SDL_Init">
+    <noreturn>false</noreturn>
+    <returnValue type="int"/>
+  </function>
+  
+  <function name="SDL_CreateWindow">
+    <noreturn>false</noreturn>
+    <returnValue type="SDL_Window *"/>
+  </function>
+  
+  <function name="SDL_CreateRenderer">
+    <noreturn>false</noreturn>
+    <returnValue type="SDL_Renderer *"/>
+  </function>
+  
+  <function name="SDL_Quit">
+    <noreturn>false</noreturn>
+    <returnValue type="void"/>
+  </function>
+</def> 
