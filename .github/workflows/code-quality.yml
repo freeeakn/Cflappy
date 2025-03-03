@@ -17,11 +17,14 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cppcheck clang-tidy libsdl2-dev python3-pip
-        sudo pip3 install cppcheck-htmlreport
+        sudo apt-get install -y cppcheck clang-tidy libsdl2-dev
 
     - name: Run Cppcheck
       run: |
+        # Create output directory
+        mkdir -p cppcheck_report
+
+        # Run cppcheck and generate both text and XML reports
         cppcheck --enable=all \
                  --suppress=missingInclude \
                  --suppress=missingIncludeSystem \
@@ -32,19 +35,30 @@ jobs:
                  --force \
                  --max-configs=10 \
                  --inline-suppr \
+                 --output-file=cppcheck_report/report.txt \
+                 main.c
+        
+        # Also generate XML report for potential future processing
+        cppcheck --enable=all \
+                 --suppress=missingInclude \
+                 --suppress=missingIncludeSystem \
+                 --suppressions-list=suppressions.txt \
+                 -I/usr/include/SDL2 \
+                 --library=.cppcheck \
+                 --force \
+                 --max-configs=10 \
+                 --inline-suppr \
                  --xml \
                  --xml-version=2 \
-                 2> cppcheck_report.xml
+                 main.c 2> cppcheck_report/report.xml
         
-        # Convert XML to readable format and also save as text
-        cppcheck-htmlreport --file=cppcheck_report.xml --report-dir=cppcheck_report --source-dir=.
-        
-        # Display errors in console
-        if [ -f cppcheck_report.xml ]; then
+        # Display findings in console
+        if [ -f cppcheck_report/report.txt ]; then
           echo "Cppcheck findings:"
-          cat cppcheck_report.xml | grep -A 1 "error\|warning\|style\|performance"
-          # Exit with error if there are error-level findings
-          if grep -q 'severity="error"' cppcheck_report.xml; then
+          cat cppcheck_report/report.txt
+          
+          # Check for errors (looking for specific error patterns)
+          if grep -iE "error:|warning:" cppcheck_report/report.txt; then
             exit 1
           fi
         fi
@@ -54,10 +68,8 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: cppcheck-report
-        path: |
-          cppcheck_report/
-          cppcheck_report.xml
-        if-no-files-found: ignore
+        path: cppcheck_report/
+        if-no-files-found: warn
         retention-days: 90
 
     - name: Run clang-tidy
