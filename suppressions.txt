@@ -1,3 +1,3 @@
 unusedFunction:*/SDL_*.h
 unmatchedSuppression
-toomanyconfigs 
+information:tooManyConfigs 

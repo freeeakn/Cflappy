@@ -17,7 +17,8 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cppcheck clang-tidy libsdl2-dev
+        sudo apt-get install -y cppcheck clang-tidy libsdl2-dev python3-pip
+        sudo pip3 install cppcheck-htmlreport
 
     - name: Run Cppcheck
       run: |
@@ -31,11 +32,19 @@ jobs:
                  --force \
                  --max-configs=10 \
                  --inline-suppr \
-                 --output-file=cppcheck_report.txt \
-                 main.c
-        if [ -f cppcheck_report.txt ]; then
-          cat cppcheck_report.txt
-          if grep -q "error:" cppcheck_report.txt; then
+                 --xml \
+                 --xml-version=2 \
+                 2> cppcheck_report.xml
+        
+        # Convert XML to readable format and also save as text
+        cppcheck-htmlreport --file=cppcheck_report.xml --report-dir=cppcheck_report --source-dir=.
+        
+        # Display errors in console
+        if [ -f cppcheck_report.xml ]; then
+          echo "Cppcheck findings:"
+          cat cppcheck_report.xml | grep -A 1 "error\|warning\|style\|performance"
+          # Exit with error if there are error-level findings
+          if grep -q 'severity="error"' cppcheck_report.xml; then
             exit 1
           fi
         fi
@@ -45,7 +54,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: cppcheck-report
-        path: cppcheck_report.txt
+        path: |
+          cppcheck_report/
+          cppcheck_report.xml
         if-no-files-found: ignore
         retention-days: 90
 
